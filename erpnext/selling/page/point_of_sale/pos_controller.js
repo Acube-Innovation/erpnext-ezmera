@@ -640,7 +640,6 @@ erpnext.PointOfSale.Controller = class {
 				if (!this.frm.doc.customer) return this.raise_customer_selection_alert();
 
 				const { item_code, batch_no, serial_no, rate, uom, stock_uom } = item;
-
 				if (!item_code) return;
 
 				if (rate == undefined || rate == 0) {
@@ -670,7 +669,8 @@ erpnext.PointOfSale.Controller = class {
 				}
 
 				await this.trigger_new_item_events(item_row);
-
+				item_row.rate = rate
+				item_row.amount =  rate * item_row.qty
 				this.update_cart_html(item_row);
 
 				if (this.item_details.$component.is(":visible")) this.edit_item_details_of(item_row);
@@ -715,7 +715,6 @@ erpnext.PointOfSale.Controller = class {
 					i.price_list_rate === flt(rate)
 			);
 		}
-
 		return item_row || {};
 	}
 
@@ -759,16 +758,12 @@ erpnext.PointOfSale.Controller = class {
 		const resp = (await this.get_available_stock(item_row.item_code, warehouse)).message;
 		const available_qty = resp[0];
 		const is_stock_item = resp[1];
-		const is_negative_stock_allowed = resp[2];
 
 		frappe.dom.unfreeze();
 		const bold_uom = item_row.stock_uom.bold();
 		const bold_item_code = item_row.item_code.bold();
 		const bold_warehouse = warehouse.bold();
 		const bold_available_qty = available_qty.toString().bold();
-
-		if (is_negative_stock_allowed) return;
-
 		if (!(available_qty > 0)) {
 			if (is_stock_item) {
 				frappe.model.clear_doc(item_row.doctype, item_row.name);
