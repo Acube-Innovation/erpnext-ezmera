@@ -99,13 +99,21 @@
 			}
 
 			> .search-field {
-				grid-column: span 5 / span 5;
+				grid-column: span 4 / span 4;
 				display: flex;
 				align-items: center;
 				margin: 0px var(--margin-sm);
 			}
 
 			> .item-group-field {
+				grid-column: span 3 / span 3;
+				display: flex;
+				align-items: center;
+				padding: var(--padding-lg);
+
+			}
+
+			> .item-group-field-1 {
 				grid-column: span 3 / span 3;
 				display: flex;
 				align-items: center;
@@ -985,7 +993,7 @@
 
 	> .past-order-list {
 		@extend .pos-card;
-		grid-column: span 1 / span 1;
+		grid-column: span 4 / span 4;
 		// edite span fro 4 to 1
 		display: none;
 		flex-direction: column;
@@ -1006,7 +1014,7 @@
 			}
 
 			> .status-field {
-				width: 100%;
+				width: 500%;
 				display: flex;
 				align-items: center;
 			}
