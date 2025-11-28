@@ -9,7 +9,6 @@ erpnext.PointOfSale.ItemCart = class {
 		this.allow_discount_change = settings.allow_discount_change;
 		this.init_component();
 	}
-
 	init_component() {
 		this.prepare_dom();
 		this.init_child_components();
@@ -69,6 +68,14 @@ erpnext.PointOfSale.ItemCart = class {
 		this.$cart_items_wrapper = this.$component.find(".cart-items-section");
 
 		this.make_no_items_placeholder();
+// --------------------------------------------------------------
+		const cart_el = this.$cart_items_wrapper[0];
+
+    const observer = new MutationObserver(() => {
+        cart_el.scrollTop = cart_el.scrollHeight;
+    });
+
+    observer.observe(cart_el, { childList: true, subtree: true });
 	}
 
 	make_no_items_placeholder() {
@@ -577,7 +584,6 @@ erpnext.PointOfSale.ItemCart = class {
 
 	update_item_html(item, remove_item) {
 		const $item = this.get_cart_item(item);
-
 		if (remove_item) {
 			$item && $item.next().remove() && $item.remove();
 		} else {
@@ -638,8 +644,8 @@ erpnext.PointOfSale.ItemCart = class {
 					<div class="item-qty-rate">
 						<div class="item-qty"><span>${item_data.qty || 0} ${item_data.uom}</span></div>
 						<div class="item-rate-amount">
-							<div class="item-rate">${format_currency(item_data.amount, currency)}</div>
-							<div class="item-amount">${format_currency(item_data.rate, currency)}</div>
+							<div class="item-rate">${format_currency(item_data.rate, currency)}</div>
+							<div class="item-amount">${format_currency(item_data.rate * item_data.qty, currency)}</div>
 						</div>
 					</div>`;
 			} else {
@@ -1066,8 +1072,7 @@ erpnext.PointOfSale.ItemCart = class {
 
 	load_invoice() {
 		const frm = this.events.get_frm();
-
-		this.attach_refresh_field_event(frm);
+		// this.attach_refresh_field_event(frm);
 
 		this.fetch_customer_details(frm.doc.customer).then(() => {
 			this.events.customer_details_updated(this.customer_info);
