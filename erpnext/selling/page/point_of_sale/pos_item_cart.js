@@ -300,7 +300,7 @@ erpnext.PointOfSale.ItemCart = class {
 	}
 
 	make_customer_selector() {
-		this.$customer_section.html(`
+		 this.$customer_section.html(`
 			<div class="customer-field"></div>
 		`);
 		const me = this;
@@ -327,7 +327,17 @@ erpnext.PointOfSale.ItemCart = class {
 						const frm = me.events.get_frm();
 						frappe.dom.freeze();
 						frappe.model.set_value(frm.doc.doctype, frm.doc.name, "customer", this.value);
-						frm.script_manager.trigger("customer", frm.doc.doctype, frm.doc.name).then(() => {
+						frappe.db.get_value("Customer", this.value, "default_price_list").then(async r => {
+									if (r.message.default_price_list) {
+										await frappe.model.set_value(
+											frm.doc.doctype,
+											frm.doc.name,
+											"selling_price_list",
+											r.message.default_price_list
+										);
+									}
+								});
+							frm.script_manager.trigger("customer", frm.doc.doctype, frm.doc.name).then(() => {
 							frappe.run_serially([
 								() => me.fetch_customer_details(this.value),
 								() => me.events.customer_details_updated(me.customer_info),
@@ -660,19 +670,22 @@ erpnext.PointOfSale.ItemCart = class {
 		}
 
 		function get_description_html() {
-			if (item_data.description) {
-				if (item_data.description.indexOf("<div>") != -1) {
-					try {
-						item_data.description = $(item_data.description).text();
-					} catch (error) {
-						item_data.description = item_data.description
-							.replace(/<div>/g, " ")
-							.replace(/<\/div>/g, " ")
-							.replace(/ +/g, " ");
-					}
-				}
-				item_data.description = frappe.ellipsis(item_data.description, 45);
-				return `<div class="item-desc">${item_data.description}</div>`;
+			if (item_data.mrp) {
+				// if (item_data.description.indexOf("<div>") != -1) {
+				// 	try {
+				// 		item_data.description = $(item_data.description).text();
+				// 	} catch (error) {
+				// 		item_data.description = item_data.description
+				// 			.replace(/<div>/g, " ")
+				// 			.replace(/<\/div>/g, " ")
+				// 			.replace(/ +/g, " ");
+				// 	}
+				// }
+				// item_data.description = frappe.ellipsis(item_data.description, 45);
+				// return `<div class="item-desc">${item_data.mrp}  ${item_data.hsn}</div>`;
+
+				return `<div class="item-desc">${item_data.mrp} <span style="padding-left:50px;color:#6e7a71"> ${item_data.hsn}</span></div>`;
+
 			}
 			return ``;
 		}
