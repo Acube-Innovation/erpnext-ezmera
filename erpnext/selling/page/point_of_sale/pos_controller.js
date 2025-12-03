@@ -671,6 +671,19 @@ erpnext.PointOfSale.Controller = class {
 				await this.trigger_new_item_events(item_row);
 				item_row.rate = rate
 				item_row.amount =  rate * item_row.qty
+				let result = await frappe.call({
+					method: "pos_management.pos_management.overrides.pos_overrides.get_items_with_batches_2",
+					freeze: true,
+					args: {
+						pos_profile: this.pos_profile,
+						item: item_row.item_code
+					}
+				});
+
+				if (result.message && result.message.items && result.message.items.length > 0) {
+					item_row.mrp = result.message.items[0].mrp;
+					item_row.hsn = result.message.items[0].hsn;
+				}
 				this.update_cart_html(item_row);
 
 				if (this.item_details.$component.is(":visible")) this.edit_item_details_of(item_row);
@@ -681,6 +694,7 @@ erpnext.PointOfSale.Controller = class {
 				)
 					this.edit_item_details_of(item_row);
 			}
+			
 		} catch (error) {
 			console.log(error);
 		} finally {
