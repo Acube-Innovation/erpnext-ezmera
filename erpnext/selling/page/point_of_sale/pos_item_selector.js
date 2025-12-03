@@ -48,11 +48,10 @@ erpnext.PointOfSale.ItemSelector = class {
 			});
 		}
 		if (!this.price_list) {
-
 			const res = await frappe.db.get_value("POS Profile", this.pos_profile, "selling_price_list");
-
 			this.price_list = res.message.selling_price_list;
 		}
+
 		this.get_items({}).then(({ message }) => {
 			this.render_item_list(message.items);
 		});
@@ -60,7 +59,7 @@ erpnext.PointOfSale.ItemSelector = class {
 
 	get_items({ start = 0, page_length = 40, search_term = "" }) {
 		const doc = this.events.get_frm().doc;
-		const price_list =  this.price_list || doc.selling_price_list;
+		const price_list =  this.price_list || this.price_list_1 || doc.selling_price_list;
 		let { item_group, pos_profile } = this;
 
 		!item_group && (item_group = this.parent_item_group);
