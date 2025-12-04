@@ -329,12 +329,12 @@ erpnext.PointOfSale.ItemCart = class {
 						frappe.model.set_value(frm.doc.doctype, frm.doc.name, "customer", this.value);
 						frappe.db.get_value("Customer", this.value, "default_price_list").then(async r => {
 									if (r.message.default_price_list) {
-										await frappe.model.set_value(
-											frm.doc.doctype,
-											frm.doc.name,
-											"selling_price_list",
-											r.message.default_price_list
-										);
+										
+										const $priceListInput = $('input[data-target="Price List"]');
+
+											$priceListInput.val(r.message.default_price_list);
+											$priceListInput.trigger('input');   // for awesomplete
+											$priceListInput.trigger('change');  // for onchange binding
 									}
 								});
 							frm.script_manager.trigger("customer", frm.doc.doctype, frm.doc.name).then(() => {
@@ -684,7 +684,7 @@ erpnext.PointOfSale.ItemCart = class {
 				// item_data.description = frappe.ellipsis(item_data.description, 45);
 				// return `<div class="item-desc">${item_data.mrp}  ${item_data.hsn}</div>`;
 
-				return `<div class="item-desc">${item_data.mrp} <span style="padding-left:50px;color:#6e7a71"> ${item_data.hsn}</span></div>`;
+				return `<div class="item-desc">${format_currency(item_data.mrp, currency)} <span style="padding-left:50px;color:#6e7a71"> ${item_data.hsn}</span></div>`;
 
 			}
 			return ``;

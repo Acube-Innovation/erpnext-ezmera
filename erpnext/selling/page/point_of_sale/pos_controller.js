@@ -610,9 +610,7 @@ erpnext.PointOfSale.Controller = class {
 		try {
 			let { field, value, item } = args;
 			item_row = this.get_item_from_frm(item);
-			console.log(item_row,2222)
 			const item_row_exists = !$.isEmptyObject(item_row);
-			console.log(item_row_exists,11111)
 			const from_selector = field === "qty" && value === "+1";
 			if (from_selector) value = flt(item_row.qty) + flt(value);
 
@@ -663,7 +661,6 @@ erpnext.PointOfSale.Controller = class {
 				if (field === "serial_no") new_item["qty"] = value.split(`\n`).length || 0;
 
 				item_row = this.frm.add_child("items", new_item);
-
 				if (field === "qty" && value !== 0 && !this.allow_negative_stock) {
 					const qty_needed = value * item_row.conversion_factor;
 					await this.check_stock_availability(item_row, qty_needed, this.frm.doc.set_warehouse);
@@ -672,12 +669,14 @@ erpnext.PointOfSale.Controller = class {
 				await this.trigger_new_item_events(item_row);
 				item_row.rate = rate
 				item_row.amount =  rate * item_row.qty
+				const current_price_list = $('input[data-target="Price List"]').val();
 				let result = await frappe.call({
 					method: "pos_management.pos_management.overrides.pos_overrides.get_items_with_batches_2",
 					freeze: true,
 					args: {
 						pos_profile: this.pos_profile,
-						item: item_row.item_code
+						item: item_row.item_code,
+						price_list:current_price_list || this.frm.doc.selling_price_list 
 					}
 				});
 
