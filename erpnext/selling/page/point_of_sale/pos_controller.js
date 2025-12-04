@@ -610,8 +610,9 @@ erpnext.PointOfSale.Controller = class {
 		try {
 			let { field, value, item } = args;
 			item_row = this.get_item_from_frm(item);
+			console.log(item_row,2222)
 			const item_row_exists = !$.isEmptyObject(item_row);
-
+			console.log(item_row_exists,11111)
 			const from_selector = field === "qty" && value === "+1";
 			if (from_selector) value = flt(item_row.qty) + flt(value);
 
@@ -723,10 +724,10 @@ erpnext.PointOfSale.Controller = class {
 			const has_batch_no = batch_no !== "null" && batch_no !== null;
 			item_row = this.frm.doc.items.find(
 				(i) =>
-					i.item_code === item_code &&
-					(!has_batch_no || (has_batch_no && i.batch_no === batch_no)) &&
-					i.uom === uom &&
-					i.price_list_rate === flt(rate)
+					i.item_code === item_code
+					// (!has_batch_no || (has_batch_no && i.batch_no === batch_no))
+					// i.uom === uom &&
+					// i.price_list_rate === flt(rate)
 			);
 		}
 		return item_row || {};

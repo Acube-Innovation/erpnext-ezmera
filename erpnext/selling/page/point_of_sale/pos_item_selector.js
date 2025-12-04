@@ -357,9 +357,10 @@ erpnext.PointOfSale.ItemSelector = class {
 	}
 
 	filter_items({ search_term = "" } = {}) {
-		const selling_price_list = this.events.get_frm().doc.selling_price_list;
+		// const selling_price_list = this.events.get_frm().doc.selling_price_list;
+		const selling_price_list = this.price_list;
 
-		if (search_term) {
+		if (search_term) {	
 			search_term = search_term.toLowerCase();
 
 			// memoize
