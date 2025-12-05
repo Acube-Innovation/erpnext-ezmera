@@ -920,6 +920,7 @@ erpnext.PointOfSale.ItemCart = class {
 					<div class="mobile_no-field"></div>
 					<div class="loyalty_program-field"></div>
 					<div class="loyalty_points-field"></div>
+					<div class="sales_person-field"></div>
 				</div>
 				<div class="transactions-section">
 					<div class="recent-transactions">${__("Recent Transactions")}</div>
@@ -945,7 +946,7 @@ erpnext.PointOfSale.ItemCart = class {
 	render_customer_fields() {
 		const $customer_form = this.$customer_section.find(".customer-fields-container");
 
-		const dfs = [
+				const dfs = [
 			{
 				fieldname: "email_id",
 				label: __("Email"),
@@ -972,6 +973,13 @@ erpnext.PointOfSale.ItemCart = class {
 				fieldtype: "Data",
 				read_only: 1,
 			},
+			{
+				fieldname: "sales_person",
+				label: __("Sales Person"),
+				fieldtype: "Link",
+				options: "Sales Person",
+				placeholder: __("Select Sales Person"),
+			},
 		];
 
 		const me = this;
@@ -988,30 +996,55 @@ erpnext.PointOfSale.ItemCart = class {
 		});
 
 		function handle_customer_field_change() {
-			const current_value = me.customer_info[this.df.fieldname];
-			const current_customer = me.customer_info.customer;
+		const current_value = me.customer_info[this.df.fieldname];
+		const current_customer = me.customer_info.customer;
+		const fieldname = this.df.fieldname;
 
-			if (this.value && current_value != this.value && this.df.fieldname != "loyalty_points") {
-				frappe.call({
-					method: "erpnext.selling.page.point_of_sale.point_of_sale.set_customer_info",
-					args: {
-						fieldname: this.df.fieldname,
-						customer: current_customer,
-						value: this.value,
-					},
-					callback: (r) => {
-						if (!r.exc) {
-							me.customer_info[this.df.fieldname] = this.value;
-							frappe.show_alert({
-								message: __("Customer contact updated successfully."),
-								indicator: "green",
-							});
-							frappe.utils.play_sound("submit");
-						}
-					},
-				});
-			}
+		if (!this.value || current_value == this.value) return;
+
+		// ✅ CHILD TABLE FIELD
+		if (fieldname === "sales_person") {
+			frappe.call({
+				method: "ezmera_app.events.pos_invoice.update_customer_sales_person",
+				args: {
+					customer: current_customer,
+					sales_person: this.value,
+				},
+				callback: (r) => {
+					if (!r.exc) {
+						me.customer_info.sales_person = this.value;
+						frappe.show_alert({
+							message: __("Sales Person updated successfully."),
+							indicator: "green",
+						});
+					}
+				},
+			});
+			return;
 		}
+
+		// ✅ NORMAL CUSTOMER MASTER FIELDS
+		if (fieldname !== "loyalty_points") {
+			frappe.call({
+				method: "erpnext.selling.page.point_of_sale.point_of_sale.set_customer_info",
+				args: {
+					fieldname,
+					customer: current_customer,
+					value: this.value,
+				},
+				callback: (r) => {
+					if (!r.exc) {
+						me.customer_info[fieldname] = this.value;
+						frappe.show_alert({
+							message: __("Customer contact updated successfully."),
+							indicator: "green",
+						});
+					}
+				},
+			});
+		}
+	}
+
 	}
 
 	fetch_customer_transactions() {
