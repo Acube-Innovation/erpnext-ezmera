@@ -723,8 +723,8 @@ erpnext.PointOfSale.Controller = class {
 			const has_batch_no = batch_no !== "null" && batch_no !== null;
 			item_row = this.frm.doc.items.find(
 				(i) =>
-					i.item_code === item_code
-					// (!has_batch_no || (has_batch_no && i.batch_no === batch_no))
+					i.item_code === item_code &&
+					(!has_batch_no || (has_batch_no && i.batch_no === batch_no))
 					// i.uom === uom &&
 					// i.price_list_rate === flt(rate)
 			);
