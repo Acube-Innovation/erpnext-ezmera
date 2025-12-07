@@ -1118,7 +1118,7 @@ erpnext.PointOfSale.ItemCart = class {
 
 	load_invoice() {
 		const frm = this.events.get_frm();
-		// this.attach_refresh_field_event(frm);
+		this.attach_refresh_field_event(frm);
 
 		this.fetch_customer_details(frm.doc.customer).then(() => {
 			this.events.customer_details_updated(this.customer_info);

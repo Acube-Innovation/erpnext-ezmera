@@ -141,71 +141,117 @@ erpnext.PointOfSale.ItemSelector = class {
 		const item_abbr = $($img).attr("alt");
 		$($img).parent().replaceWith(`<div class="item-display abbr">${item_abbr}</div>`);
 	}
-
 	make_search_bar() {
-		const me = this;
-		this.$component.find(".search-field").html("");
-		this.$component.find(".item-group-field").html("");
-		this.$component.find(".item-group-field-1").html("")
-		this.search_field = frappe.ui.form.make_control({
-			df: {
-				label: __("Search"),
-				fieldtype: "Data",
-				placeholder: __("Search by item code, serial number or barcode"),
+	const me = this;
+
+	// Clear existing fields
+	this.$component.find(".search-field").html("");
+	this.$component.find(".item-group-field").html("");
+	this.$component.find(".item-group-field-1").html("");
+
+	// 🔍 Search Field
+	this.search_field = frappe.ui.form.make_control({
+		df: {
+			label: __("Search"),
+			fieldtype: "Data",
+			placeholder: __("Search by item code, serial number or barcode"),
+		},
+		parent: this.$component.find(".search-field"),
+		render_input: true,
+	});
+
+	// 📦 Item Group Field
+	this.item_group_field = frappe.ui.form.make_control({
+		df: {
+			label: __("Item Group"),
+			fieldtype: "Link",
+			options: "Item Group",
+			placeholder: __("Select item group"),
+			onchange: function () {
+				me.item_group = this.value;
+				!me.item_group && (me.item_group = me.parent_item_group);
+				me.filter_items();
 			},
-			parent: this.$component.find(".search-field"),
-			render_input: true,
-		});
-		this.item_group_field = frappe.ui.form.make_control({
-			df: {
-				label: __("Item Group"),
-				fieldtype: "Link",
-				options: "Item Group",
-				placeholder: __("Select item group"),
-				onchange: function () {
-					me.item_group = this.value;
-					!me.item_group && (me.item_group = me.parent_item_group);
-					me.filter_items();
-				},
-				get_query: function () {
-					const doc = me.events.get_frm().doc;
-					return {
-						query: "erpnext.selling.page.point_of_sale.point_of_sale.item_group_query",
-						filters: {
-							pos_profile: doc ? doc.pos_profile : "",
+			get_query: function () {
+				const doc = me.events.get_frm().doc;
+				return {
+					query: "erpnext.selling.page.point_of_sale.point_of_sale.item_group_query",
+					filters: {
+						pos_profile: doc ? doc.pos_profile : "",
+					},
+				};
+			},
+		},
+		parent: this.$component.find(".item-group-field"),
+		render_input: true,
+	});
+
+	// 💰 Price List Field
+	this.item_group_field_1 = frappe.ui.form.make_control({
+		df: {
+			label: __("Price"),
+			fieldtype: "Link",
+			options: "Price List",
+			placeholder: __("Select Price List"),
+			onchange: async function () {
+				me.price_list = this.value;
+				const frm = me.events.get_frm();
+
+				// ✅ 1. Force currency & conversion rate (no popup)
+				await frm.set_value("currency", "INR");
+				await frm.set_value("conversion_rate", 1);
+				await frm.set_value("selling_price_list", me.price_list);
+
+				// ✅ 2. Recalculate all cart items via POS get_items method
+				if (frm.doc.items && frm.doc.items.length) {
+					const item_codes = frm.doc.items.map(row => row.item_code);
+
+					const r = await frappe.call({
+						method: "erpnext.selling.page.point_of_sale.point_of_sale.get_items",
+						args: {
+							item_codes: item_codes,
+							price_list: me.price_list,
+							customer: frm.doc.customer,
+							company: frm.doc.company,
+							pos_profile: frm.doc.pos_profile,
 						},
-					};
-				},
-			},
-			parent: this.$component.find(".item-group-field"),
-			render_input: true,
-		});
-		this.item_group_field_1 = frappe.ui.form.make_control({
-			df: {
-				label: __("Price"),
-				fieldtype: "Link",
-				options: "Price List",
-				placeholder: __("Select Price List"),
-				onchange: function () {
-					me.price_list = this.value;
-					me.get_items({}).then(r => {
-                if (r.message) {
-                    me.items = r.message.items;
-                    me.render_item_list(me.items);   // refresh item grid
-                }
-            });
-				},
-			},
-			parent: this.$component.find(".item-group-field-1"),
-			render_input: true,
-		});
-		this.search_field.toggle_label(false);
-		this.item_group_field.toggle_label(false);
-		this.item_group_field_1.toggle_label(false);
+					});
 
+					if (r.message && Array.isArray(r.message)) {
+						// Update each cart row with new rate
+						r.message.forEach(new_item => {
+							const row = frm.doc.items.find(i => i.item_code === new_item.item_code);
+							if (row && new_item.rate !== undefined) {
+								frappe.model.set_value(row.doctype, row.name, "rate", new_item.rate);
+							}
+						});
+					}
+				}
 
-		this.attach_clear_btn();
-	}
+				// ✅ 3. Refresh item grid
+				const res = await me.get_items({});
+				if (res.message) {
+					me.items = res.message.items;
+					me.render_item_list(me.items);
+				}
+
+				// ✅ 4. Refresh totals section
+				$(frm.wrapper).trigger("refresh-fields");
+			},
+		},
+		parent: this.$component.find(".item-group-field-1"),
+		render_input: true,
+	});
+
+	// 🔕 Hide field labels
+	this.search_field.toggle_label(false);
+	this.item_group_field.toggle_label(false);
+	this.item_group_field_1.toggle_label(false);
+
+	// Attach clear button
+	this.attach_clear_btn();
+}
+
 
 	attach_clear_btn() {
 		this.search_field.$wrapper.find(".control-input").append(
