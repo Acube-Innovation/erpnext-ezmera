@@ -62,6 +62,7 @@
   "items_section",
   "update_stock",
   "scan_barcode",
+  "is_free_item",
   "last_scanned_warehouse",
   "items",
   "pricing_rule_details",
@@ -1577,12 +1578,17 @@
    "fieldtype": "Data",
    "is_virtual": 1,
    "label": "Last Scanned Warehouse"
+  },
+  {
+   "fieldname": "is_free_item",
+   "fieldtype": "Attach Image",
+   "label": "Is Free Item"
   }
  ],
  "icon": "fa fa-file-text",
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-04 22:22:31.471752",
+ "modified": "2025-12-07 20:15:51.624038",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "POS Invoice",
@@ -1627,6 +1633,7 @@
    "role": "All"
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "posting_date, due_date, customer, base_grand_total, outstanding_amount",
  "show_name_in_global_search": 1,
  "sort_field": "modified",

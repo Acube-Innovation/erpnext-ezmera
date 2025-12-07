@@ -682,10 +682,10 @@ erpnext.PointOfSale.Controller = class {
 					args: {
 						pos_profile: this.pos_profile,
 						item: item_row.item_code,
-						price_list:current_price_list || this.frm.doc.selling_price_list 
+						price_list:current_price_list || this.frm.doc.selling_price_list ,
+						batch_no:batch_no
 					}
 				});
-
 				if (result.message && result.message.items && result.message.items.length > 0) {
 					item_row.mrp = result.message.items[0].mrp;
 					item_row.hsn = result.message.items[0].hsn;
