@@ -680,9 +680,19 @@ erpnext.PointOfSale.Controller = class {
 					}
 				});
 
-				if (result.message && result.message.items && result.message.items.length > 0) {
-					item_row.mrp = result.message.items[0].mrp;
-					item_row.hsn = result.message.items[0].hsn;
+			if (result.message && result.message.items && result.message.items.length > 0) {
+					await frappe.model.set_value(
+							item_row.doctype,
+							item_row.name,
+							"custom_mrp",
+							result.message.items[0].mrp
+						);
+					await frappe.model.set_value(
+							item_row.doctype,
+							item_row.name,
+							"gst_hsn_code",
+							result.message.items[0].hsn
+						);
 				}
 				this.update_cart_html(item_row);
 
@@ -692,6 +702,8 @@ erpnext.PointOfSale.Controller = class {
 					this.check_serial_batch_selection_needed(item_row) &&
 					!this.item_details.$component.is(":visible")
 				)
+
+				
 					this.edit_item_details_of(item_row);
 			}
 			
