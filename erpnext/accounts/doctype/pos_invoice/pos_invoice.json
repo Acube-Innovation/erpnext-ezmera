@@ -1581,7 +1581,7 @@
   },
   {
    "fieldname": "is_free_item",
-   "fieldtype": "Attach Image",
+   "fieldtype": "Check",
    "label": "Is Free Item"
   }
  ],

@@ -625,7 +625,10 @@ erpnext.PointOfSale.ItemCart = class {
 				<div class="item-name">
 					${item_data.item_name}
 				</div>
-				${get_description_html()}
+				<div class="item-desc">
+				
+			  ${get_description_html(item_data)}</div>
+				
 			</div>
 			${get_rate_discount_html()}`
 		);
@@ -669,26 +672,22 @@ erpnext.PointOfSale.ItemCart = class {
 			}
 		}
 
-		function get_description_html() {
-			if (item_data.mrp) {
-				// if (item_data.description.indexOf("<div>") != -1) {
-				// 	try {
-				// 		item_data.description = $(item_data.description).text();
-				// 	} catch (error) {
-				// 		item_data.description = item_data.description
-				// 			.replace(/<div>/g, " ")
-				// 			.replace(/<\/div>/g, " ")
-				// 			.replace(/ +/g, " ");
-				// 	}
-				// }
-				// item_data.description = frappe.ellipsis(item_data.description, 45);
-				// return `<div class="item-desc">${item_data.mrp}  ${item_data.hsn}</div>`;
+	function get_description_html(item_data) {
+    const mrp_value = item_data.mrp || item_data.custom_mrp || ""
+      
 
-				return `<div class="item-desc">${format_currency(item_data.mrp, currency)} <span style="padding-left:50px;color:#6e7a71"> ${item_data.hsn}</span></div>`;
+    const hsn_value = item_data.hsn || item_data.gst_hsn_code || "";
 
-			}
-			return ``;
-		}
+    return `
+        <div class="item-desc">
+            ${format_currency(mrp_value, currency)}
+            <span style="padding-left:50px; color:#6e7a71">
+                ${hsn_value}
+            </span>
+        </div>
+    `;
+}
+
 
 		function get_item_image_html() {
 			const { image, item_name } = item_data;

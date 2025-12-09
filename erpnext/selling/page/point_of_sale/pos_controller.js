@@ -633,12 +633,6 @@ erpnext.PointOfSale.Controller = class {
 							item_row.serial_no + `\n${item.serial_no}`
 						);
 					}
-					await frappe.model.set_value(
-							item_row.doctype,
-							item_row.name,
-							"rate",
-							item.rate
-						);
 					this.update_cart_html(item_row);
 				}
 			} else {
@@ -682,10 +676,10 @@ erpnext.PointOfSale.Controller = class {
 					args: {
 						pos_profile: this.pos_profile,
 						item: item_row.item_code,
-						price_list:current_price_list || this.frm.doc.selling_price_list ,
-						batch_no:batch_no
+						price_list:current_price_list || this.frm.doc.selling_price_list 
 					}
 				});
+
 				if (result.message && result.message.items && result.message.items.length > 0) {
 					item_row.mrp = result.message.items[0].mrp;
 					item_row.hsn = result.message.items[0].hsn;
@@ -718,26 +712,7 @@ erpnext.PointOfSale.Controller = class {
 		frappe.utils.play_sound("error");
 	}
 
-	// get_item_from_frm({ name, item_code, batch_no, uom, rate }) {
-	// 	let item_row = null;
-	// 	if (name) {
-	// 		item_row = this.frm.doc.items.find((i) => i.name == name);
-	// 	} else {
-	// 		// if item is clicked twice from item selector
-	// 		// then "item_code, batch_no, uom, rate" will help in getting the exact item
-	// 		// to increase the qty by one
-	// 		const has_batch_no = batch_no !== "null" && batch_no !== null;
-	// 		item_row = this.frm.doc.items.find(
-	// 			(i) =>
-	// 				i.item_code === item_code &&
-	// 				(!has_batch_no || (has_batch_no && i.batch_no === batch_no))
-	// 				// i.uom === uom &&
-	// 				// i.price_list_rate === flt(rate)
-	// 		);
-	// 	}
-	// 	return item_row || {};
-	// }
-	get_item_from_frm({ name, item_code, batch_no, serial_no, uom, rate }) {
+get_item_from_frm({ name, item_code, batch_no, serial_no, uom, rate }) {
     // Normalize incoming batch/serial values
     const normalize = (v) => {
         if (v === undefined || v === null) return null;
@@ -769,7 +744,7 @@ erpnext.PointOfSale.Controller = class {
             const i_bn = normalize(i.batch_no);
             const i_sn = normalize(i.serial_no);
             const i_uom = normalize(i.uom);
-            // const i_rate = i.price_list_rate !== undefined ? flt(i.price_list_rate) : (i.rate !== undefined ? flt(i.rate) : null);
+            const i_rate = i.price_list_rate !== undefined ? flt(i.price_list_rate) : (i.rate !== undefined ? flt(i.rate) : null);
 
             // if serial is provided, match on serial (unique)
             if (sn) {
@@ -783,18 +758,19 @@ erpnext.PointOfSale.Controller = class {
                 if (i_bn !== bn) return false;
                 // optional: also match uom and rate to be safer
                 if (ruom && i_uom && i_uom !== ruom) return false;
-                // if (rrate !== null && i_rate !== null && i_rate !== rrate) return false;
+                if (rrate !== null && i_rate !== null && i_rate !== rrate) return false;
                 return true;
             }
 
             // fallback: match item_code, uom and rate (if available)
             if (i.item_code !== item_code) return false;
             if (ruom && i_uom && i_uom !== ruom) return false;
-            // if (rrate !== null && i_rate !== null && i_rate !== rrate) return false;
+            if (rrate !== null && i_rate !== null && i_rate !== rrate) return false;
             return true;
         }) || {}
     );
 }
+
 	edit_item_details_of(item_row) {
 		this.item_details.toggle_item_details_section(item_row);
 	}
