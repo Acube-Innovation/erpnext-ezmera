@@ -735,7 +735,7 @@ class AccountsController(TransactionBase):
 			) and not self.get("is_return"):
 				msg = _("Internal Sale or Delivery Reference missing.")
 				msg += _("Please create purchase from internal sale or delivery document itself")
-				frappe.throw(msg, title=_("Internal Sales Reference Missing"))
+				# frappe.throw(msg, title=_("Internal Sales Reference Missing"))
 
 			label = "Delivery Note Item" if self.doctype == "Purchase Receipt" else "Sales Invoice Item"
 
@@ -744,7 +744,7 @@ class AccountsController(TransactionBase):
 			for row in self.get("items"):
 				if not row.get(field):
 					msg = f"At Row {row.idx}: The field {bold(label)} is mandatory for internal transfer"
-					frappe.throw(_(msg), title=_("Internal Transfer Reference Missing"))
+					# frappe.throw(_(msg), title=_("Internal Transfer Reference Missing"))
 
 	def validate_internal_transaction(self):
 		if not cint(

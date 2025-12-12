@@ -681,6 +681,7 @@ erpnext.PointOfSale.Controller = class {
 				});
 
 			if (result.message && result.message.items && result.message.items.length > 0) {
+				console.log(result.message,"resssss")
 					await frappe.model.set_value(
 							item_row.doctype,
 							item_row.name,

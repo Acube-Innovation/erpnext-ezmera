@@ -920,6 +920,7 @@ erpnext.PointOfSale.ItemCart = class {
 					<div class="loyalty_program-field"></div>
 					<div class="loyalty_points-field"></div>
 					<div class="sales_person-field"></div>
+					<div class="outstanding_amount-field"></div> 
 				</div>
 				<div class="transactions-section">
 					<div class="recent-transactions">${__("Recent Transactions")}</div>
@@ -979,6 +980,14 @@ erpnext.PointOfSale.ItemCart = class {
 				options: "Sales Person",
 				placeholder: __("Select Sales Person"),
 			},
+			{
+				fieldname: "outstanding_amount",
+				label: __("Outstanding Amount"),
+				fieldtype: "Currency",
+				read_only: 1,
+			}
+
+
 		];
 
 		const me = this;
@@ -992,6 +1001,26 @@ erpnext.PointOfSale.ItemCart = class {
 				handle_customer_field_change.apply(this[`customer_${df.fieldname}_field`]);
 			});
 			this[`customer_${df.fieldname}_field`].set_value(this.customer_info[df.fieldname]);
+		});
+
+		
+		frappe.call({
+			method: "erpnext.accounts.utils.get_balance_on",
+			args: {
+				party_type: "Customer",
+				party: me.customer_info.customer
+			},
+			callback: function(r) {
+				if (r && r.message !== undefined) {
+					const outstanding = r.message || 0;
+
+					
+					me.customer_info.outstanding_amount = outstanding;
+
+					
+					me.customer_outstanding_amount_field?.set_value(outstanding);
+				}
+			}
 		});
 
 		function handle_customer_field_change() {
