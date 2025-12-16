@@ -978,6 +978,7 @@ erpnext.PointOfSale.ItemCart = class {
 				label: __("Sales Person"),
 				fieldtype: "Link",
 				options: "Sales Person",
+				reqd:1,
 				placeholder: __("Select Sales Person"),
 			},
 			{
@@ -1005,32 +1006,42 @@ erpnext.PointOfSale.ItemCart = class {
 
 		
 		frappe.call({
-			method: "erpnext.accounts.utils.get_balance_on",
-			args: {
-				party_type: "Customer",
-				party: me.customer_info.customer
-			},
-			callback: function(r) {
-				if (r && r.message !== undefined) {
-					const outstanding = r.message || 0;
+	method: "erpnext.accounts.utils.get_balance_on",
+	args: {
+		party_type: "Customer",
+		party: me.customer_info.customer,
+	},
+	callback: function (r) {
+		if (r && r.message !== undefined) {
+			const outstanding = r.message || 0;
 
-					
-					me.customer_info.outstanding_amount = outstanding;
+			// Set value first
+			me.customer_info.outstanding_amount = outstanding;
+			me.customer_outstanding_amount_field?.set_value(outstanding);
 
-					
-					me.customer_outstanding_amount_field?.set_value(outstanding);
+			// Style READ-ONLY value node (NOT input)
+			setTimeout(() => {
+				const field = me.customer_outstanding_amount_field;
+				const value_el = field?.$wrapper?.find(".control-value")[0];
+
+				if (value_el) {
+					value_el.style.color = outstanding < 0 ? "red" : "green";
+					value_el.style.fontWeight = "500";
 				}
-			}
-		});
+			}, 0);
+		}
+	},
+});
 
-		function handle_customer_field_change() {
+
+function handle_customer_field_change() {
 		const current_value = me.customer_info[this.df.fieldname];
 		const current_customer = me.customer_info.customer;
 		const fieldname = this.df.fieldname;
 
 		if (!this.value || current_value == this.value) return;
 
-		// ✅ CHILD TABLE FIELD
+	
 		if (fieldname === "sales_person") {
 			frappe.call({
 				method: "ezmera_app.events.pos_invoice.update_customer_sales_person",
@@ -1051,7 +1062,7 @@ erpnext.PointOfSale.ItemCart = class {
 			return;
 		}
 
-		// ✅ NORMAL CUSTOMER MASTER FIELDS
+	
 		if (fieldname !== "loyalty_points") {
 			frappe.call({
 				method: "erpnext.selling.page.point_of_sale.point_of_sale.set_customer_info",

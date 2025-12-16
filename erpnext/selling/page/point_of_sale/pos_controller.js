@@ -208,6 +208,7 @@ erpnext.PointOfSale.Controller = class {
 		this.page.clear_menu();
 
 		this.page.add_menu_item(__("Open Form View"), this.open_form_view.bind(this), false, "Ctrl+F");
+		this.page.add_menu_item(__("Print"), this.print_form.bind(this), false, "Ctrl+P");
 
 		this.page.add_menu_item(
 			__("Toggle Recent Orders"),
@@ -258,6 +259,32 @@ erpnext.PointOfSale.Controller = class {
 		frappe.model.sync(this.frm.doc);
 		frappe.set_route("Form", this.frm.doc.doctype, this.frm.doc.name);
 	}
+	print_form() {
+	
+	if (!this.frm.doc.items || !this.frm.doc.items.length) {
+		frappe.msgprint(__("No items to print"));
+		return;
+	}
+
+
+	if (!this.frm.doc.name) {
+		frappe.msgprint(__("Please save the invoice before printing"));
+		return;
+	}
+
+	const print_format =
+		this.frm.doc.print_format ||
+		this.pos_profile.print_format ||
+		"POS Invoice";
+
+	
+	frappe.utils.print(
+		this.frm.doc.doctype,
+		this.frm.doc.name,
+		print_format
+	);
+}
+
 
 	toggle_recent_order() {
 		const show = this.recent_order_list.$component.is(":hidden");
@@ -914,19 +941,44 @@ get_item_from_frm({ name, item_code, batch_no, serial_no, uom, rate }) {
 			.catch((e) => console.log(e));
 	}
 
-	async save_and_checkout() {
-		if (this.frm.is_dirty()) {
-			let save_error = false;
-			await this.frm.save(null, null, null, () => (save_error = true));
-			// only move to payment section if save is successful
-			!save_error && this.payment.checkout();
-			// show checkout button on error
-			save_error &&
-				setTimeout(() => {
-					this.cart.toggle_checkout_btn(true);
-				}, 300); // wait for save to finish
-		} else {
-			this.payment.checkout();
-		}
+async save_and_checkout() {
+
+	const sp = this.customer_details?.sales_person;
+
+	if (!sp) {
+		frappe.msgprint({
+			title: __("Mandatory Field Missing"),
+			message: __("Please select a Sales Person before proceeding to checkout."),
+			indicator: "red"
+		});
+		this.cart.toggle_checkout_btn(true);
+		return;
 	}
-};
+
+
+	this.frm.doc.sales_person = sp;
+
+	
+	this.frm.doc.sales_team = [];
+	const row = this.frm.add_child("sales_team");
+	row.sales_person = sp;
+	row.allocated_percentage = 100;
+	this.frm.refresh_field("sales_team");
+
+	if (this.frm.is_dirty()) {
+		let save_error = false;
+
+		await this.frm.save(null, null, null, () => (save_error = true));
+
+		if (!save_error) {
+			this.payment.checkout();
+		} else {
+			setTimeout(() => {
+				this.cart.toggle_checkout_btn(true);
+			}, 300);
+		}
+	} else {
+		this.payment.checkout();
+	}
+}
+}
