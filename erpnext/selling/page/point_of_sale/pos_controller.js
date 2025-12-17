@@ -275,7 +275,7 @@ erpnext.PointOfSale.Controller = class {
 	const print_format =
 		this.frm.doc.print_format ||
 		this.pos_profile.print_format ||
-		"POS Invoice";
+		"Pos Raw";
 
 	
 	frappe.utils.print(
