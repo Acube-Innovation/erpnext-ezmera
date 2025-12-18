@@ -992,17 +992,32 @@ erpnext.PointOfSale.ItemCart = class {
 		];
 
 		const me = this;
-		dfs.forEach((df) => {
-			this[`customer_${df.fieldname}_field`] = frappe.ui.form.make_control({
-				df: df,
-				parent: $customer_form.find(`.${df.fieldname}-field`),
-				render_input: true,
-			});
-			this[`customer_${df.fieldname}_field`].$input?.on("blur", () => {
-				handle_customer_field_change.apply(this[`customer_${df.fieldname}_field`]);
-			});
-			this[`customer_${df.fieldname}_field`].set_value(this.customer_info[df.fieldname]);
-		});
+	dfs.forEach((df) => {
+	const field = frappe.ui.form.make_control({
+		df: df,
+		parent: $customer_form.find(`.${df.fieldname}-field`),
+		render_input: true,
+	});
+
+	this[`customer_${df.fieldname}_field`] = field;
+
+	field.$input?.on("blur", () => {
+		handle_customer_field_change.apply(field);
+	});
+
+	// IMPORTANT FIX
+	if (df.fieldname === "sales_person") {
+		// Only set if explicitly selected in POS
+		if (this.customer_info.sales_person) {
+			field.set_value(this.customer_info.sales_person);
+		} else {
+			field.set_value(null);        // force empty
+			field.refresh();              // clear cached value
+		}
+	} else {
+		field.set_value(this.customer_info[df.fieldname]);
+	}
+});
 
 		
 		frappe.call({

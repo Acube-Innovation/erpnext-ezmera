@@ -940,12 +940,12 @@ get_item_from_frm({ name, item_code, batch_no, serial_no, uom, rate }) {
 			})
 			.catch((e) => console.log(e));
 	}
-
 async save_and_checkout() {
 
 	const sp = this.customer_details?.sales_person;
 
-	if (!sp) {
+	// Validate only for NEW document
+	if (this.frm.is_new() && !sp) {
 		frappe.msgprint({
 			title: __("Mandatory Field Missing"),
 			message: __("Please select a Sales Person before proceeding to checkout."),
@@ -955,20 +955,26 @@ async save_and_checkout() {
 		return;
 	}
 
+	// Update sales team ONLY for new invoices
+	if (this.frm.is_new()) {
 
-	this.frm.doc.sales_person = sp;
+		this.frm.doc.sales_person = sp;
 
-	
-	this.frm.doc.sales_team = [];
-	const row = this.frm.add_child("sales_team");
-	row.sales_person = sp;
-	row.allocated_percentage = 100;
-	this.frm.refresh_field("sales_team");
+		this.frm.doc.sales_team = [];
+		const row = this.frm.add_child("sales_team");
+		row.sales_person = sp;
+		row.allocated_percentage = 100;
 
+		this.frm.refresh_field("sales_team");
+	}
+
+	// Save & checkout
 	if (this.frm.is_dirty()) {
 		let save_error = false;
 
-		await this.frm.save(null, null, null, () => (save_error = true));
+		await this.frm.save(null, null, null, () => {
+			save_error = true;
+		});
 
 		if (!save_error) {
 			this.payment.checkout();
