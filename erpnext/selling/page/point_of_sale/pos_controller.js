@@ -266,11 +266,13 @@ erpnext.PointOfSale.Controller = class {
 		return;
 	}
 
-
 	if (!this.frm.doc.name) {
 		frappe.msgprint(__("Please save the invoice before printing"));
 		return;
 	}
+
+	const doctype = this.frm.doc.doctype;
+	const docname = this.frm.doc.name;
 
 	const print_format =
 		this.frm.doc.print_format ||
@@ -278,12 +280,13 @@ erpnext.PointOfSale.Controller = class {
 		"Pos Raw";
 
 	
-	frappe.utils.print(
-		this.frm.doc.doctype,
-		this.frm.doc.name,
-		print_format
-	);
+	const url = `/app/print/${encodeURIComponent(doctype)}/${encodeURIComponent(docname)}`;
+	
+
+	// Open in new tab
+	window.open(url, "_blank");
 }
+
 
 
 	toggle_recent_order() {
