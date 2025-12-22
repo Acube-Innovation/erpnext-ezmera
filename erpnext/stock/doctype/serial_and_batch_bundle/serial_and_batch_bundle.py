@@ -549,7 +549,7 @@ class SerialandBatchBundle(Document):
 				of quantity {bold(available_qty)} in the
 				warehouse {self.warehouse}"""
 
-			frappe.throw(_(msg), BatchNegativeStockError)
+			# frappe.throw(_(msg), BatchNegativeStockError)
 
 	def is_stock_reco_for_valuation_adjustment(self, available_qty):
 		if (
