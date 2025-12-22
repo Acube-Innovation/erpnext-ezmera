@@ -202,7 +202,7 @@ class SalesOrder(SellingController):
 
 	def validate(self):
 		super().validate()
-		self.validate_delivery_date()
+		# self.validate_delivery_date()
 		self.validate_proj_cust()
 		self.validate_po()
 		self.validate_uom_is_integer("stock_uom", "stock_qty")
@@ -337,12 +337,13 @@ class SalesOrder(SellingController):
 					if not d.delivery_date:
 						d.delivery_date = self.delivery_date
 					if getdate(self.transaction_date) > getdate(d.delivery_date):
-						frappe.msgprint(
-							_("Expected Delivery Date should be after Sales Order Date"),
-							indicator="orange",
-							title=_("Invalid Delivery Date"),
-							raise_exception=True,
-						)
+						pass
+						# frappe.msgprint(
+						# 	_("Expected Delivery Date should be after Sales Order Date"),
+						# 	indicator="orange",
+						# 	title=_("Invalid Delivery Date"),
+						# 	raise_exception=True,
+						# )
 			else:
 				frappe.throw(_("Please enter Delivery Date"))
 
@@ -561,7 +562,7 @@ class SalesOrder(SellingController):
 		self.validate_po()
 		self.validate_drop_ship()
 		self.validate_supplier_after_submit()
-		self.validate_delivery_date()
+		# self.validate_delivery_date()
 
 	def validate_supplier_after_submit(self):
 		"""Check that supplier is the same after submit if PO is already made"""
