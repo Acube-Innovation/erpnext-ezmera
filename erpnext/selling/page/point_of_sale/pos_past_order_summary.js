@@ -254,7 +254,7 @@ erpnext.PointOfSale.PastOrderSummary = class {
 		const ctrl_label = frappe.utils.is_mac() ? "⌘" : "Ctrl";
 		this.$summary_container.find(".print-btn").attr("title", `${ctrl_label}+P`);
 		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+p",
+			shortcut: "Ctrl+P",
 			action: () => this.$summary_container.find(".print-btn").click(),
 			condition: () =>
 				this.$component.is(":visible") && this.$summary_container.find(".print-btn").is(":visible"),
