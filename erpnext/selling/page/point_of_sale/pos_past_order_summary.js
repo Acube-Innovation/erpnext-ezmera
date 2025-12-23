@@ -214,16 +214,41 @@ erpnext.PointOfSale.PastOrderSummary = class {
 		});
 	}
 
+	// print_receipt() {
+	// 	const frm = this.events.get_frm();
+	// 	frappe.utils.print(
+	// 		this.doc.doctype,
+	// 		this.doc.name,
+	// 		frm.pos_print_format,
+	// 		this.doc.letter_head,
+	// 		this.doc.language || frappe.boot.lang
+	// 	);
+	// }
+
+
 	print_receipt() {
-		const frm = this.events.get_frm();
-		frappe.utils.print(
-			this.doc.doctype,
-			this.doc.name,
-			frm.pos_print_format,
-			this.doc.letter_head,
-			this.doc.language || frappe.boot.lang
-		);
-	}
+	const frm = this.events.get_frm();
+
+	
+
+	const doctype = this.doc.doctype;
+	const docname = this.doc.name;
+
+	const print_format =
+		frm.pos_print_format ||
+		frm.doc.print_format ||
+		"Pos Raw";
+
+	const url =
+		`/app/print/${encodeURIComponent(doctype)}/${encodeURIComponent(docname)}` +
+		`?format=${encodeURIComponent(print_format)}` +
+		`&letterhead=${encodeURIComponent(this.doc.letter_head || "")}` +
+		`&lang=${encodeURIComponent(this.doc.language || frappe.boot.lang)}`;
+
+	
+	window.open(url, "_blank");
+}
+
 
 	attach_shortcuts() {
 		const ctrl_label = frappe.utils.is_mac() ? "⌘" : "Ctrl";
