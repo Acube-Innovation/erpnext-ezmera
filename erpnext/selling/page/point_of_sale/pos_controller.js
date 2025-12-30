@@ -1,10 +1,23 @@
 erpnext.PointOfSale.Controller = class {
-	constructor(wrapper) {
-		this.wrapper = $(wrapper).find(".layout-main-section");
-		this.page = wrapper.page;
+	// constructor(wrapper) {
+	// 	this.wrapper = $(wrapper).find(".layout-main-section");
+	// 	this.page = wrapper.page;
 
-		this.check_opening_entry();
-	}
+	// 	this.check_opening_entry();
+	// }
+constructor(wrapper) {
+	this.wrapper = $(wrapper).find(".layout-main-section");
+	this.page = wrapper.page;
+
+	// 🔴 Capture before async calls
+	this.route_invoice = frappe.route_options?.load_pos_invoice || null;
+
+	// Clear immediately to avoid reuse
+	frappe.route_options = null;
+
+	this.check_opening_entry();
+}
+
 
 	fetch_opening_entry() {
 		return frappe.call("erpnext.selling.page.point_of_sale.point_of_sale.check_opening_entry", {
@@ -181,13 +194,45 @@ erpnext.PointOfSale.Controller = class {
 		);
 	}
 
-	make_app() {
-		this.prepare_dom();
-		this.prepare_components();
-		this.prepare_menu();
-		this.prepare_fullscreen_btn();
+	// make_app() {
+	// 	this.prepare_dom();
+	// 	this.prepare_components();
+	// 	this.prepare_menu();
+	// 	this.prepare_fullscreen_btn();
+	// 	this.make_new_invoice();
+	// }
+make_app() {
+	this.prepare_dom();
+	this.prepare_components();
+	this.prepare_menu();
+	this.prepare_fullscreen_btn();
+
+	if (this.route_invoice) {
+		this.load_existing_pos_invoice(this.route_invoice);
+	} else {
 		this.make_new_invoice();
 	}
+}
+
+async load_existing_pos_invoice(name) {
+	frappe.dom.freeze();
+
+	const doc = await frappe.db.get_doc("POS Invoice", name);
+
+	await frappe.run_serially([
+		() => {
+			this.frm = this.get_new_frm(this.frm);
+			frappe.model.sync(doc);
+			this.frm.refresh(doc.name);
+		},
+		() => this.set_pos_profile_data(),
+		() => this.cart.load_invoice(),
+		() => this.item_selector.toggle_component(true),
+	]);
+
+	frappe.dom.unfreeze();
+}
+
 
 	prepare_dom() {
 		this.wrapper.append(`<div class="point-of-sale-app"></div>`);
@@ -256,9 +301,21 @@ erpnext.PointOfSale.Controller = class {
 	}
 
 	open_form_view() {
-		frappe.model.sync(this.frm.doc);
-		frappe.set_route("Form", this.frm.doc.doctype, this.frm.doc.name);
-	}
+	frappe.model.sync(this.frm.doc);
+
+	frappe.route_options = {
+		from_pos: 1,
+		pos_invoice: this.frm.doc.name,
+	};
+
+	frappe.set_route("Form", this.frm.doc.doctype, this.frm.doc.name);
+}
+
+
+	// open_form_view() {
+	// 	frappe.model.sync(this.frm.doc);
+	// 	frappe.set_route("Form", this.frm.doc.doctype, this.frm.doc.name);
+	// }
 	print_form() {
 	
 	if (!this.frm.doc.items || !this.frm.doc.items.length) {
