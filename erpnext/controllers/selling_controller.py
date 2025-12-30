@@ -274,13 +274,14 @@ class SellingController(StockController):
 					d.stock_qty = flt(d.stock_qty, d.precision("stock_qty"))
 
 	def validate_selling_price(self):
-		def show_message(idx, item_name, rate, ref_rate_field):
-			frappe.msgprint(
+
+		def throw_message(idx, item_name, rate, ref_rate_field):
+			throw(
 				_(
 					"""Row #{0}: Selling rate for item {1} is lower than its {2}.
-					Selling {3} should be at least {4}.<br><br>
-					You may proceed, but please verify pricing.<br><br>
-					(You can disable this warning in {5} if required.)"""
+					Selling {3} should be atleast {4}.<br><br>Alternatively,
+					you can disable selling price validation in {5} to bypass
+					this validation."""
 				).format(
 					idx,
 					bold(item_name),
@@ -289,9 +290,7 @@ class SellingController(StockController):
 					bold(rate),
 					get_link_to_form("Selling Settings", "Selling Settings"),
 				),
-				title=_("Selling Price Warning"),
-				indicator="orange",
-				alert=True,
+				title=_("Invalid Selling Price"),
 			)
 
 		if self.get("is_return") or not frappe.db.get_single_value(
@@ -313,7 +312,12 @@ class SellingController(StockController):
 			last_purchase_rate_in_sales_uom = last_purchase_rate * (item.conversion_factor or 1)
 
 			if flt(item.base_net_rate) < flt(last_purchase_rate_in_sales_uom):
-				show_message(item.idx, item.item_name, last_purchase_rate_in_sales_uom, "last purchase rate")
+				throw_message(
+					item.idx,
+					item.item_name,
+					last_purchase_rate_in_sales_uom,
+					"last purchase rate",
+				)
 
 			if is_internal_customer or not is_stock_item:
 				continue
@@ -324,9 +328,9 @@ class SellingController(StockController):
 			return
 
 		or_conditions = (
-			f"""(item_code = {frappe.db.escape(valuation_rate[0])}
-			and warehouse = {frappe.db.escape(valuation_rate[1])})"""
-			for valuation_rate in valuation_rate_map
+			f"""(item_code = {frappe.db.escape(v[0])}
+			and warehouse = {frappe.db.escape(v[1])})"""
+			for v in valuation_rate_map
 		)
 
 		valuation_rates = frappe.db.sql(
@@ -338,7 +342,7 @@ class SellingController(StockController):
 			where
 				({" or ".join(or_conditions)})
 				and valuation_rate > 0
-		""",
+			""",
 			as_dict=True,
 		)
 
@@ -350,19 +354,19 @@ class SellingController(StockController):
 				continue
 
 			last_valuation_rate = valuation_rate_map.get((item.item_code, item.warehouse))
-
 			if not last_valuation_rate:
 				continue
 
 			last_valuation_rate_in_sales_uom = last_valuation_rate * (item.conversion_factor or 1)
 
 			if flt(item.base_net_rate) < flt(last_valuation_rate_in_sales_uom):
-				show_message(
+				throw_message(
 					item.idx,
 					item.item_name,
 					last_valuation_rate_in_sales_uom,
 					"valuation rate (Moving Average)",
 				)
+
 
 	def get_item_list(self):
 		il = []
