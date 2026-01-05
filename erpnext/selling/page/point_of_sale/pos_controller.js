@@ -756,32 +756,47 @@ async load_existing_pos_invoice(name) {
 				await this.trigger_new_item_events(item_row);
 				item_row.rate = rate
 				item_row.amount =  rate * item_row.qty
+
+				const original_item_code = item_row.item_code.includes("::")
+					? item_row.item_code.split("::")[0]
+					: item_row.item_code;
+
+			
 				const current_price_list = $('input[data-target="Price List"]').val();
 				let result = await frappe.call({
 					method: "pos_management.pos_management.overrides.pos_overrides.get_items_with_batches_2",
 					freeze: true,
 					args: {
 						pos_profile: this.pos_profile,
-						item: item_row.item_code,
+						item: original_item_code,
+
 						price_list:current_price_list || this.frm.doc.selling_price_list 
 					}
 				});
+				if (result.message && result.message.items && result.message.items.length > 0) {
+					console.log(result.message,"kkkk")
 
-			if (result.message && result.message.items && result.message.items.length > 0) {
-				console.log(result.message,"resssss")
-					await frappe.model.set_value(
+					const matched = result.message.items.find(
+						i => i.batch_no === item_row.batch_no
+					);
+
+					if (matched) {
+						await frappe.model.set_value(
 							item_row.doctype,
 							item_row.name,
 							"custom_mrp",
-							result.message.items[0].mrp
+							matched.mrp
 						);
-					await frappe.model.set_value(
+
+						await frappe.model.set_value(
 							item_row.doctype,
 							item_row.name,
 							"gst_hsn_code",
-							result.message.items[0].hsn
+							matched.hsn
 						);
+					}
 				}
+
 				this.update_cart_html(item_row);
 
 				if (this.item_details.$component.is(":visible")) this.edit_item_details_of(item_row);
