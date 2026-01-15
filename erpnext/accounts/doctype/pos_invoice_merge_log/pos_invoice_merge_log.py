@@ -121,9 +121,13 @@ class POSInvoiceMergeLog(Document):
 
 		sales_invoice, credit_notes = "", {}
 		sales_invoice_doc = None
+		# if sales:
+		# 	sales_invoice_doc = self.process_merging_into_sales_invoice(sales)
+		# 	sales_invoice = sales_invoice_doc.name
 		if sales:
-			sales_invoice_doc = self.process_merging_into_sales_invoice(sales)
-			sales_invoice = sales_invoice_doc.name
+			# Skip creating Sales Invoice
+			sales_invoice_doc = None
+			sales_invoice = ""
 
 		if returns:
 			distinguished_returns = self.distinguish_return_pos_invoices(returns, sales_invoice_doc)
