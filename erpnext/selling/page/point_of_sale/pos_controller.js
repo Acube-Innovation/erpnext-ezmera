@@ -253,6 +253,7 @@ async load_existing_pos_invoice(name) {
 		this.page.clear_menu();
 
 		this.page.add_menu_item(__("Open Form View"), this.open_form_view.bind(this), false, "Ctrl+F");
+
 		this.page.add_menu_item(__("Print"), this.print_form.bind(this), false, "Ctrl+P");
 
 		this.page.add_menu_item(
@@ -318,7 +319,7 @@ async load_existing_pos_invoice(name) {
 	// }
 	print_form() {
 	
-	if (!this.frm.doc.items || !this.frm.doc.items.length) {
+	if (!this.frm.doc.name || !this.frm.doc.items.length) {
 		frappe.msgprint(__("No items to print"));
 		return;
 	}
