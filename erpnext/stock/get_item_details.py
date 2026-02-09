@@ -212,16 +212,35 @@ def update_stock(ctx, out, doc=None):
 
 		qty = out.stock_qty
 		batches = []
+
+
 		if out.has_batch_no and not ctx.get("batch_no"):
 			batches = get_available_batches(kwargs)
 			if doc:
 				filter_batches(batches, doc)
 
+
+			bypass_batch_rate = False
+			if (
+				doc
+				and doc.doctype == "POS Invoice"
+				and doc.get("custom_from_quotation")
+			):
+				bypass_batch_rate = True
+
 			for batch_no, batch_qty in batches.items():
-				rate = get_batch_based_item_price(
-					{"price_list": doc.get("selling_price_list"), "uom": out.uom, "batch_no": batch_no},
-					out.item_code,
-				)
+
+				rate = None
+				if not bypass_batch_rate:
+					rate = get_batch_based_item_price(
+						{
+							"price_list": doc.get("selling_price_list"),
+							"uom": out.uom,
+							"batch_no": batch_no,
+						},
+						out.item_code,
+					)
+
 				if batch_qty >= qty:
 					out.update({"batch_no": batch_no, "actual_batch_qty": qty})
 					if rate:
@@ -233,6 +252,28 @@ def update_stock(ctx, out, doc=None):
 				out.update({"batch_no": batch_no, "actual_batch_qty": batch_qty})
 				if rate:
 					out.update({"rate": rate, "price_list_rate": rate})
+
+		# if out.has_batch_no and not ctx.get("batch_no"):
+		# 	batches = get_available_batches(kwargs)
+		# 	if doc:
+		# 		filter_batches(batches, doc)
+
+		# 	for batch_no, batch_qty in batches.items():
+		# 		rate = get_batch_based_item_price(
+		# 			{"price_list": doc.get("selling_price_list"), "uom": out.uom, "batch_no": batch_no},
+		# 			out.item_code,
+		# 		)
+		# 		if batch_qty >= qty:
+		# 			out.update({"batch_no": batch_no, "actual_batch_qty": qty})
+		# 			if rate:
+		# 				out.update({"rate": rate, "price_list_rate": rate})
+		# 			break
+		# 		else:
+		# 			qty -= batch_qty
+
+		# 		out.update({"batch_no": batch_no, "actual_batch_qty": batch_qty})
+		# 		if rate:
+		# 			out.update({"rate": rate, "price_list_rate": rate})
 
 		if out.has_serial_no and out.has_batch_no and has_incorrect_serial_nos(ctx, out):
 			kwargs["batches"] = [ctx.get("batch_no")] if ctx.get("batch_no") else [out.get("batch_no")]
