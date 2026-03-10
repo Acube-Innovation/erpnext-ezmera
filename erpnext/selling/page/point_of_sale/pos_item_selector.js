@@ -242,6 +242,8 @@ erpnext.PointOfSale.ItemSelector = class {
 		parent: this.$component.find(".item-group-field-1"),
 		render_input: true,
 	});
+	this.item_group_field_1.set_value("Professional");
+	me.price_list = "Professional";
 
 	// 🔕 Hide field labels
 	this.search_field.toggle_label(false);
