@@ -699,8 +699,13 @@ erpnext.PointOfSale.ItemCart = class {
 							src="${image}" alt="${frappe.get_abbr(item_name)}"">
 					</div>`;
 			} else {
-				return `<div class="item-image item-abbr">${frappe.get_abbr(item_name)}</div>`;
-			}
+                const frm = me.events.get_frm();
+                const index = frm.doc.items.findIndex(
+                    d => d.name === item_data.name
+                ) + 1;
+
+                return `<div class="item-image item-abbr">${index}</div>`;
+            }
 		}
 	}
 
