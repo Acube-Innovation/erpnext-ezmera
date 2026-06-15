@@ -458,9 +458,21 @@ erpnext.PointOfSale.ItemSelector = class {
 			? this.$component.find(".search-field").css("margin", "var(--margin-sm) 0px")
 			: this.$component.find(".search-field").css("margin", "0px var(--margin-sm)");
 
-		minimize
-			? this.$component.css("grid-column", "span 2 / span 2")
-			: this.$component.css("grid-column", "span 6 / span 6");
+		if (minimize) {
+			this.$component.css("grid-column", "span 2 / span 2");
+
+			$(".customer-cart-container").css(
+				"grid-column",
+				"span 4 / span 4"
+			);
+		} else {
+			this.$component.css("grid-column", "span 6 / span 6");
+
+			$(".customer-cart-container").css(
+				"grid-column",
+				"span 4 / span 4"
+			);
+		}
 
 		minimize
 			? this.$items_container.css("grid-template-columns", "repeat(1, minmax(0, 1fr))")
